@@ -1,0 +1,150 @@
+{
+    "expname": "exp906",
+    "device": "gpu",
+    "seed_list": [
+        3,
+        10,
+        19,
+        57,
+        68
+    ],
+    "data_dir": "../temp_thresh_shash/data/",
+    "figure_dir": "saved/figures/",
+    "model_dir": "saved/models/",
+    "output_dir": "saved/output/",
+    "fig_dpi": 300,
+    "datamaker": {
+        "obs_source": "BEST",
+        "output_obs_source": "BEST",
+        "ssp_list": [
+            "ssp126",
+            "ssp245",
+            "ssp370",
+            "ssp585"
+        ],
+        "gcmsub": [
+            "multi_member"
+        ],
+        "n_train_val_test": [
+            [
+                7,
+                2,
+                1
+            ]
+        ],
+        "batch_size": 32,
+        "baseline_yr_bounds": [
+            1850,
+            1899
+        ],
+        "training_yr_bounds": [
+            1980,
+            2100
+        ],
+        "non_historical_yr_bounds": [
+            2015,
+            2100
+        ],
+        "anomaly_yr_bounds": [
+            1991,
+            2020
+        ],
+        "threshold": "prolonged_exceedance",
+        "thresh_time": 15,
+        "filter_historical": false,
+        "anomalies": "baseline",
+        "remove_map_mean": false,
+        "land_only": false,
+        "input_region": "globe",
+        "input_var": [
+            "tas"
+        ],
+        "input_period": [
+            "ANN"
+        ],
+        "target_region": "CNA",
+        "target_var": [
+            "tasmin"
+        ],
+        "target_period": [
+            "jja"
+        ],
+        "temp_targets": [
+            0.25,
+            0.5,
+            1.0,
+            2.0,
+            3.0
+        ],
+        "use_emissions_input": true,
+        "args": {}
+    },
+    "arch": {
+        "type": "cnn",
+        "circular_padding": [
+            15,
+            15,
+            0,
+            0
+        ],
+        "n_inputchannel": 1,
+        "filters": [
+            32,
+            32,
+            32
+        ],
+        "kernel_size": [
+            5,
+            3,
+            3
+        ],
+        "cnn_act": [
+            "ReLU",
+            "ReLU",
+            "ReLU"
+        ],
+        "hiddens_block": [
+            10,
+            10,
+            10
+        ],
+        "hiddens_block_in": [
+            6338,
+            10,
+            10
+        ],
+        "hiddens_block_act": [
+            "ReLU",
+            "ReLU",
+            "ReLU"
+        ],
+        "hiddens_final": 5,
+        "hiddens_final_in": 12,
+        "hiddens_final_act": "Tanh"
+    },
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.000001,
+            "weight_decay": 0,
+            "amsgrad": false,
+            "eps": 1e-07
+        }
+    },
+    "criterion": "ShashNLL",
+    "metrics": [
+        "custom_mae",
+        "iqr_capture",
+        "sign_test"
+    ],
+    "trainer": {
+        "max_epochs": 10000,
+        "save_dir": "models/",
+        "early_stopping": {
+            "args": {
+                "patience": 15,
+                "min_delta": 0.0
+            }
+        }
+    }
+}
