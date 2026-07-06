@@ -13,6 +13,11 @@ The co-authors on this work include Marybeth C. Arcodia (University of Miami) an
 ## Citations
 Manuscript citation will be published upon acceptance for publication.  
 
+### Code
+[![DOI](https://zenodo.org/badge/999184054.svg)](https://doi.org/10.5281/zenodo.21224309)
+
+Arcodia, M. (2026). mbarcodia/paper_temp-thresh-shash: 2026 Release for Publication (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.21224309
+
 ## License
 This project is licensed under an MIT license.
 
