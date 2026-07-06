@@ -20,6 +20,7 @@ class BaseTransferTrainer:
         self.optimizer = optimizer
 
         self.max_epochs = max_epochs
+        # super().__init__(model, criterion, metric_funcs, optimizer, max_epochs, config)
 
         # Use EarlyStoppingTransfer which monitors train_custom_mae
         self.early_stopper = EarlyStoppingTransfer(
@@ -141,3 +142,11 @@ class EarlyStoppingTransfer:
             if self.counter >= self.patience:
                 return True
         return False
+
+
+# def custom_mae(output, target):
+#     """Compute the prediction mean absolute error between the model's predicted median and the target values."""
+#     with torch.no_grad():
+#         assert len(output[:, 0]) == len(target)
+#         dist = Shash(output)
+#         return torch.mean(torch.abs(dist.mode() - target)).item()

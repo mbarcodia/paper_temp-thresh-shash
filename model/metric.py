@@ -14,6 +14,20 @@ from shash.shash_torch import Shash
 import numpy as np
 
 
+# def custom_mae(output, target):
+#     """Compute the prediction mean absolute error between the model's predicted median and the target values.
+#     The "predicted value" is the median of the conditional distribution.
+
+#     """
+#     with torch.no_grad():  # used to save memory
+
+#         assert len(output[:, 0]) == len(target)
+
+#         dist = Shash(output)
+#         return torch.mean(torch.abs(dist.median() - target)).item()
+#         # return torch.mean(torch.abs(dist.mode() - target)).item()
+
+
 def custom_mae(output, target):
     """Compute the prediction mean absolute error between the model's predicted mode and the target values.
     The "predicted value" is the mode of the conditional distribution.

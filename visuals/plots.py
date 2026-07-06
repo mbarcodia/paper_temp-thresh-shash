@@ -441,6 +441,152 @@ def plot_pits(output, target, ax=None, ssp_label=""):
     ax.set_ylabel("Probability")
 
 
+def plot_xai_heatmaps(
+    xplot,
+    xplot_transfer,
+    xplot_cmip,
+    lat,
+    lon,
+    ipcc_region,
+    subplots=3,
+    scaling=1,
+    diff_scaling=1.0,
+    title=None,
+    colorbar=True,
+):
+    c = cmaps_ncl.BlueDarkRed18_r.colors
+    c = np.insert(c, 9, [1, 1, 1], axis=0)
+    cmap = mpl.colors.ListedColormap(c)
+
+    transform = ct.crs.PlateCarree()
+    projection = ct.crs.EqualEarth(central_longitude=0.0)
+
+    xplot = xplot * scaling
+    xplot_transfer = xplot_transfer * scaling
+    if subplots == 3:
+        xplot_cmip = xplot_cmip * scaling
+
+    fig = plt.figure(figsize=(1.5 * 5.25 * 2, 1.5 * 3.25 * 1), dpi=200)
+
+    if subplots == 3:
+        a1 = fig.add_subplot(1, 3, 1, projection=projection)
+        c1 = a1.pcolormesh(
+            lon,
+            lat,
+            xplot_cmip,
+            cmap=cmap,
+            transform=transform,
+        )
+        a1.add_feature(
+            cfeature.NaturalEarthFeature(
+                "physical",
+                "land",
+                "110m",
+                edgecolor="k",
+                linewidth=0.5,
+                facecolor="None",
+            )
+        )
+        regionmask.defined_regions.ar6.land[(ipcc_region,)].plot(
+            add_label=False,
+            label_multipolygon="all",
+            add_ocean=False,
+            ocean_kws=dict(color="lightblue", alpha=0.25),
+            line_kws=dict(
+                linewidth=1.0,
+            ),
+        )
+        c1.set_clim(-1, 1)
+        if colorbar:
+            fig.colorbar(
+                c1,
+                orientation="horizontal",
+                shrink=0.35,
+                extend="both",
+                pad=0.02,
+            )
+        if title is not None:
+            plt.title("(a) CMIP6 SHAP " + title)
+
+    a1 = fig.add_subplot(1, 3, 2, projection=projection)
+    c1 = a1.pcolormesh(
+        lon,
+        lat,
+        xplot,
+        cmap=cmap,
+        transform=transform,
+    )
+    a1.add_feature(
+        cfeature.NaturalEarthFeature(
+            "physical",
+            "land",
+            "110m",
+            edgecolor="k",
+            linewidth=0.5,
+            facecolor="None",
+        )
+    )
+    regionmask.defined_regions.ar6.land[(ipcc_region,)].plot(
+        add_label=False,
+        label_multipolygon="all",
+        add_ocean=False,
+        ocean_kws=dict(color="lightblue", alpha=0.25),
+        line_kws=dict(
+            linewidth=1.0,
+        ),
+    )
+    c1.set_clim(-1, 1)
+    if colorbar:
+        fig.colorbar(
+            c1,
+            orientation="horizontal",
+            shrink=0.35,
+            extend="both",
+            pad=0.02,
+        )
+    if title is not None:
+        plt.title("(b) Observations SHAP " + title)
+
+    a1 = fig.add_subplot(1, 3, 3, projection=projection)
+    c1 = a1.pcolormesh(
+        lon,
+        lat,
+        xplot_transfer - xplot,
+        cmap=cmap,
+        transform=transform,
+    )
+    a1.add_feature(
+        cfeature.NaturalEarthFeature(
+            "physical",
+            "land",
+            "110m",
+            edgecolor="k",
+            linewidth=0.5,
+            facecolor="None",
+        )
+    )
+    regionmask.defined_regions.ar6.land[(ipcc_region,)].plot(
+        add_label=False,
+        label_multipolygon="all",
+        add_ocean=False,
+        ocean_kws=dict(color="lightblue", alpha=0.25),
+        line_kws=dict(
+            linewidth=1.0,
+        ),
+    )
+    c1.set_clim(-1.0 * diff_scaling, 1.0 * diff_scaling)
+    if colorbar:
+        fig.colorbar(
+            c1,
+            orientation="horizontal",
+            shrink=0.35,
+            extend="both",
+            pad=0.02,
+        )
+    if title is not None:
+        plt.title("(c) Transfer minus Original SHAP " + title)
+
+
 def plot_label_definition(
     year_reached,
     temp_target,

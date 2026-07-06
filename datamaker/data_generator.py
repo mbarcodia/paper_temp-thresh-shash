@@ -63,12 +63,35 @@ class ClimateData:
 
         self._create_obs()
 
+        # Standardize the observation data using the ensemble mean and std
+        # self._standardize_obs_data()
+
         if self.verbose:
             print("-----------------")
             self.d_obs.summary()
 
+    def _standardize_obs_data(self):
+        """
+        Standardize the observational data using the mean and std of the ensemble data.
+        """
+        # Use the same mean and std computed from the training data ensemble
+        mean_train = self.d_train["x"].mean(axis=0)
+        std_train = self.d_train["x"].std(axis=0)
+        print(f"mean_train.shape: {mean_train.shape}")
+        print(f"std_train.shape: {std_train.shape}")
+        print("Stats Before Standardization:")
+        print(np.mean(self.d_obs["x"]), np.std(self.d_obs["x"]))
+
+        # Standardize the observation data by subtracting the mean and dividing by the std
+        self.d_obs["x"] = (self.d_obs["x"] - mean_train) / std_train
+        print("Stats After Standardization:")
+        print(np.mean(self.d_obs["x"]), np.std(self.d_obs["x"]))
+
     def _create_obs(
         self,
+        # ssp,
+        # temp_target_list=None,
+        # output_obs_dataset=None,
         plot=True,
         #    include_all=False,
     ):
@@ -107,10 +130,25 @@ class ClimateData:
                 )
                 f_dict = self._select_training_years(f_dict)
 
-                self.d_obs.concat(f_dict)
+                # Skip data split if include_all is True
+                # if include_all:
+                #     f_dict = self._select_training_years(f_dict, include_all=True)
+                # else:
+                #     f_dict = self._select_training_years(f_dict)
 
+                # Concatenate with the rest of the observational data
+                # print("Before concatenation OBS:")
+                # print(f"f_dict['x'].shape: {f_dict['x'].shape}")
+                self.d_obs.concat(f_dict)
+                # print("After concatenation:")
+                # print(f"self.d_obs['x'].shape: {self.d_obs['x'].shape}")
+
+        # print("Before reshape:")
+        # print(f"self.d_obs['x'].shape: {self.d_obs['x'].shape}")
         # Reshape the data into samples
         self.d_obs.reshape()
+        # print("After reshape:")
+        # print(f"self.d_obs['x'].shape: {self.d_obs['x'].shape}")
 
         # Apply filtering if required
         if self.config["filter_historical"]:
@@ -217,9 +255,19 @@ class ClimateData:
 
                         # # concatenate with the rest of the data
 
+                        # print("Before concatenation:")
+                        # print(f"f_dict_train['x'].shape: {f_dict_train['x'].shape}")
+                        # print(f"f_dict_val['x'].shape: {f_dict_val['x'].shape}")
+                        # print(f"f_dict_test['x'].shape: {f_dict_test['x'].shape}")
+
                         self.d_train.concat(f_dict_train)
                         self.d_val.concat(f_dict_val)
                         self.d_test.concat(f_dict_test)
+
+                        # print("After concatenation:")
+                        # print(f"self.d_train['x'].shape: {self.d_train['x'].shape}")
+                        # print(f"self.d_val['x'].shape: {self.d_val['x'].shape}")
+                        # print(f"self.d_test['x'].shape: {self.d_test['x'].shape}")
 
         # reshape the data into samples
         # print("Before reshape:")
@@ -441,6 +489,7 @@ class ClimateData:
         # --------------------
         # plot the results
         if plot:
+            # plot the results
             plots.plot_anomaly_definition(
                 year_reached,
                 temp_target,

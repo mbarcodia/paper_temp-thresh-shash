@@ -65,12 +65,35 @@ class ClimateDataTransfer:
 
         self._create_obs()
 
+        # Standardize the observation data using the ensemble mean and std
+        # self._standardize_obs_data()
+
         if self.verbose:
             print("-----------------")
             self.d_obs.summary()
 
+    def _standardize_obs_data(self):
+        """
+        Standardize the observational data using the mean and std of the ensemble data.
+        """
+        # Use the same mean and std computed from the training data ensemble
+        mean_train = self.d_train["x"].mean(axis=0)
+        std_train = self.d_train["x"].std(axis=0)
+        print(f"mean_train.shape: {mean_train.shape}")
+        print(f"std_train.shape: {std_train.shape}")
+        print("Stats Before Standardization:")
+        print(np.mean(self.d_obs["x"]), np.std(self.d_obs["x"]))
+
+        # Standardize the observation data by subtracting the mean and dividing by the std
+        self.d_obs["x"] = (self.d_obs["x"] - mean_train) / std_train
+        print("Stats After Standardization:")
+        print(np.mean(self.d_obs["x"]), np.std(self.d_obs["x"]))
+
     def _create_obs(
         self,
+        # ssp,
+        # temp_target_list=None,
+        # output_obs_dataset=None,
         plot=True,
         #    include_all=False,
     ):
@@ -155,6 +178,9 @@ class ClimateDataTransfer:
         self._get_members()  # determine which members (subsets of data) will be used
         # self._create_input_data()
         self._create_data()  # process the data and split it into training, validation, and testing datasets
+
+        # Standardization: compute mean and std for training ensemble data
+        # self._standardize_ensemble_data()
 
         if self.verbose:
             print("-----------------")
@@ -337,6 +363,20 @@ class ClimateDataTransfer:
         f_dict["member"] = np.tile(members[:, np.newaxis], f_dict["y"].shape[1])
 
         return f_dict
+
+    # def _standardize_ensemble_data(self):
+    #     """
+    #     Compute mean and std across time dimension for each grid point in the ensemble data,
+    #     and standardize both the training, validation, and test datasets.
+    #     """
+    #     # Compute mean and standard deviation across the time dimension for each grid point
+    #     mean_train = self.d_train["x"].mean(axis=0)
+    #     std_train = self.d_train["x"].std(axis=0)
+
+    #     # Standardize the ensemble data by subtracting the mean and dividing by the std
+    #     self.d_train["x"] = (self.d_train["x"] - mean_train) / std_train
+    #     self.d_val["x"] = (self.d_val["x"] - mean_train) / std_train  # Use training mean/std for validation
+    #     self.d_test["x"] = (self.d_test["x"] - mean_train) / std_train  # Use training mean/std for testing
 
     def _get_gridded_data(self, f_dict, da):
         if self.config["anomalies"] is True:

@@ -240,6 +240,57 @@ class Shash:
                 * torch.exp(-rsqr / 2)
             )
 
+    # def prob(self, x):
+    #     """Probability density function (pdf)."""
+
+    #     # Ensure x has requires_grad=True before proceeding
+    #     if not torch.is_tensor(x):
+    #         if hasattr(x, "__len__"):
+    #             x = torch.tensor(
+    #                 x[:, None], requires_grad=True
+    #             )  # Explicitly set requires_grad=True
+    #         else:
+    #             x = torch.tensor(
+    #                 x, requires_grad=True
+    #             )  # Explicitly set requires_grad=True
+
+    #     # Print statements for debugging
+    #     print(f"Inside prob(): x.requires_grad = {x.requires_grad}")
+
+    #     # Compute y
+    #     y = (x - self.mu) / self.sigma
+    #     print(f"y.requires_grad after division = {y.requires_grad}")
+
+    #     # If tau is None, compute the pdf using the default formula
+    #     if self.tau is None:
+    #         rsqr = torch.square(torch.sinh(torch.asinh(y) - self.gamma))
+    #         print(f"rsqr.requires_grad = {rsqr.requires_grad}")
+
+    #         pdf_val = (
+    #             (ONE_OVER_SQRT_TWO_PI / self.sigma)
+    #             * torch.sqrt((1 + rsqr) / (1 + torch.square(y)))
+    #             * torch.exp(-rsqr / 2)
+    #         )
+    #     else:
+    #         rsqr = torch.square(torch.sinh(self.tau * torch.asinh(y) - self.gamma))
+    #         print(f"rsqr.requires_grad in else = {rsqr.requires_grad}")
+
+    #         pdf_val = (
+    #             (ONE_OVER_SQRT_TWO_PI * (self.tau / self.sigma))
+    #             * torch.sqrt((1 + rsqr) / (1 + torch.square(y)))
+    #             * torch.exp(-rsqr / 2)
+    #         )
+
+    #     # Ensure pdf_val retains gradients
+    #     print(f"pdf_val.requires_grad = {pdf_val.requires_grad}")
+
+    #     # Enforce pdf_val to require gradients if any operation has broken the graph
+    #     pdf_val = (
+    #         pdf_val.requires_grad_()
+    #     )  # Ensure the final tensor has requires_grad=True
+
+    #     return pdf_val
+
     def log_prob(self, x):
         """Log-probability density function.
 
@@ -373,6 +424,47 @@ class Shash:
         else:
             return self.mu + self.sigma * torch.sinh(self.gamma / self.tau)
 
+    # def mode(self, max_iter=100, tol=1e-8):
+    #     """Computes the mode of the Sinh-Arcsinh Normal Distribution using Newton's method."""
+
+    #     # Ensure x_mode is differentiable
+    #     x_mode = self.mu.clone().detach().requires_grad_(True)
+
+    #     for _ in range(max_iter):
+    #         # Compute first derivative f'(x)
+    #         pdf_val = self.prob(x_mode)
+
+    #         if not pdf_val.requires_grad:
+    #             raise RuntimeError(
+    #                 f"pdf_val does not require gradients! Check computational graph.\n"
+    #                 f"x_mode.requires_grad={x_mode.requires_grad}, self.mu.requires_grad={self.mu.requires_grad}, "
+    #                 f"self.sigma.requires_grad={self.sigma.requires_grad}"
+    #             )
+
+    #         grad_1st = grad(pdf_val.sum(), x_mode, create_graph=True)[0]
+
+    #         # Compute second derivative f''(x)
+    #         grad_2nd = grad(grad_1st.sum(), x_mode, create_graph=True)[
+    #             0
+    #         ]  # Set create_graph=True
+
+    #         # Ensure denominator is not too small
+    #         grad_2nd = torch.where(
+    #             grad_2nd.abs() < tol,
+    #             torch.tensor(tol, device=grad_2nd.device),
+    #             grad_2nd,
+    #         )
+
+    #         # Newton-Raphson update
+    #         step = grad_1st / grad_2nd
+    #         x_mode = x_mode - step
+
+    #         # Convergence check
+    #         if torch.max(torch.abs(step)) < tol:
+    #             break
+
+    #     return x_mode
+
     def mode(self, max_iter=100, tol=1e-8):
         """Computes the mode of the Sinh-Arcsinh Normal Distribution using Newton's method.
 
@@ -414,6 +506,48 @@ class Shash:
                 break
 
         return x_mode.detach()  # Return mode without gradient tracking
+
+    # def mode(self):
+    #     """The distribution mode.
+
+    #     Arguments
+    #     ---------
+    #     mu : float (batch size x 1) Tensor
+    #         The location parameter.
+
+    #     sigma : float (batch size x 1) Tensor
+    #         The scale parameter. Must be strictly positive. Must be the same
+    #         shape as mu.
+
+    #     gamma : float (batch size x 1) Tensor
+    #         The skewness parameter. Must be the same shape as mu.
+
+    #     tau : float (batch size x 1) Tensor
+    #         The tail-weight parameter. Must be strictly positive. Must be the same
+    #         shape as mu. If tau is None then the default value of tau=1 is used.
+
+    #     Returns
+    #     -------
+    #     x : float (batch size x 1) Tensor.
+    #         The computed distribution mode values.
+
+    #     Notes
+    #     -----
+    #     * This formula follows the approximation:
+
+    #         mode(X) ≈ μ + σ * sinh( (1/τ) * sinh⁻¹(-γ) )
+
+    #     * This provides a reasonable estimate, but it is analytical, not numerical (e.g. an approximation).
+
+    #     mode(X)≈μ+σ⋅sinh(1/τ*sinh^−1(−γ))
+
+    #     """
+    #     if self.tau is None:
+    #         return self.mu + self.sigma * torch.sinh(torch.asinh(-self.gamma))
+    #     else:
+    #         return self.mu + self.sigma * torch.sinh(
+    #             torch.asinh(-self.gamma) / self.tau
+    #         )
 
     def quantile(self, pr):
         """Inverse cumulative distribution function.
